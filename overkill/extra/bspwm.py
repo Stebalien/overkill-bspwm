@@ -9,6 +9,7 @@ Monitor = namedtuple('Monitor', ['name', 'focused'])
 class BSPWMSource(Source, PipeSink):
     publishes = ["monitors", "desktops"]
     cmd = ['bspc', 'control', '--subscribe']
+    restart = True
 
     def is_publishing(self, sub):
         try:
