@@ -1,17 +1,14 @@
-from overkill.sinks import FifoSink
+from overkill.sinks import PipeSink
 from overkill.sources import Source
-import os, subprocess
+import os
 from collections import namedtuple
 
 Desktop = namedtuple('Desktop', ['name', 'focused', 'occupied'])
 Monitor = namedtuple('Monitor', ['name', 'focused'])
 
-class BSPWMSource(Source, FifoSink):
+class BSPWMSource(Source, PipeSink):
     publishes = ["monitors", "desktops"]
-    fifo_path = os.path.expandvars("$XDG_RUNTIME_DIR/bspwm-panel-fifo")
-
-    def on_start(self):
-        subprocess.call(["bspc", "put_status"])
+    cmd = ['bspc', 'control', '--subscribe']
 
     def is_publishing(self, sub):
         try:
@@ -21,7 +18,9 @@ class BSPWMSource(Source, FifoSink):
 
     def handle_input(self, line):
         data = {"monitors": [], "desktops": []}
-        for field in line.split(':'):
+        if line[0] != 'W':
+            return
+        for field in line[1:].split(':'):
             if not field:
                 continue
             key = field[0]
