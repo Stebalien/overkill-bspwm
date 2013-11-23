@@ -17,7 +17,6 @@
 
 from overkill.sinks import PipeSink
 from overkill.sources import Source
-import os
 from collections import namedtuple
 
 Desktop = namedtuple('Desktop', ['name', 'focused', 'occupied'])
