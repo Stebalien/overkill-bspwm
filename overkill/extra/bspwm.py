@@ -19,8 +19,8 @@ from overkill.sinks import PipeSink
 from overkill.sources import Source
 from collections import namedtuple
 
-Desktop = namedtuple('Desktop', ['name', 'focused', 'occupied'])
-Monitor = namedtuple('Monitor', ['name', 'focused'])
+Desktop = namedtuple('Desktop', ['name', 'index', 'focused', 'occupied'])
+Monitor = namedtuple('Monitor', ['name', 'index', 'focused'])
 
 class BSPWMSource(Source, PipeSink):
     publishes = ["monitors", "desktops"]
@@ -37,17 +37,22 @@ class BSPWMSource(Source, PipeSink):
         data = {"monitors": [], "desktops": []}
         if line[0] != 'W':
             return
+        desktop_index = 0
+        monitor_index = 0
         for field in line[1:].split(':'):
             if not field:
                 continue
             key = field[0]
             value = field[1:]
             if key.lower() == "m":
+                monitor_index += 1
                 current_monitor_desktops = data[("desktops", value)] = []
-                data["monitors"].append(Monitor(value, key.isupper()))
+                data["monitors"].append(Monitor(value, monitor_index, key.isupper()))
             elif key.lower() in ('f', 'o'):
+                desktop_index += 1
                 desk = Desktop(
-                    value.split('/', 1)[-1],
+                    value,
+                    desktop_index,
                     key.isupper(),
                     key.lower() == 'o'
                 )
