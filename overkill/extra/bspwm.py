@@ -15,9 +15,10 @@
 #    along with Overkill-bspwm.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-from overkill.sinks import PipeSink
+from overkill.sinks import PipeSink, Sink
 from overkill.sources import Source
 from collections import namedtuple
+import subprocess
 
 Desktop = namedtuple('Desktop', ['name', 'index', 'focused', 'occupied'])
 Monitor = namedtuple('Monitor', ['name', 'index', 'focused'])
@@ -64,3 +65,16 @@ class BSPWMSource(Source, PipeSink):
                 del data[key]
         self.push_updates(data)
 
+class BSPWMSink(Sink):
+    def on_start(self):
+        self.subscribe_to("wm.desktop.focus")
+        self.subscribe_to("wm.desktop.layout")
+
+    def handle_updates(self, updates, source):
+        if "wm.desktop.focus" in updates:
+            subprocess.Popen(["bspc", "desktop", "-f", "^%s" % updates["wm.desktop.focus"]])
+        if "wm.desktop.layout" in updates:
+            subprocess.Popen(["bspc", "desktop", "-l", updates["wm.desktop.layout"]])
+
+    def handle_unsubscribe(self, subscription, source):
+        pass
